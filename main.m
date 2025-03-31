@@ -24,13 +24,11 @@ for i = 1:size(dhparams, 1)
     if i ~= 4
         joints{i} = rigidBodyJoint(['joint' num2str(i)], 'revolute');
     else
-        joints{i} = rigidBodyJoint(['joint' num2str(i)], 'fixed');
+        joints{i} = rigidBody(['tool' num2str(i)], 'fixed');
     end
 
-    % Set the joint's DH parameters
     setFixedTransform(joints{i}, dhparams(i, :), 'dh');
 
-    % Attach the joint to the body
     bodies{i}.Joint = joints{i};
 
     if i == 1
@@ -41,10 +39,36 @@ for i = 1:size(dhparams, 1)
 
 end
 
+% collsions
+collBase = collisionBox(0.1, 0.1, 0.05);
+collBase.Pose = trvec2tform([0, 0, 0.025]);
+collLink1 = collisionCylinder(0.1, 0.1, 0.4);
+collLink1.Pose = trvec2tform([0, 0, 0.2]);
+collLink2 = collisionCylinder(0.1, 0.1, 0.1);
+collLink2.Pose = trvec2tform([0, 0, 0.05]);
+collLink3 = collisionCylinder(0.1, 0.1, 0.1);
+collLink3.Pose = trvec2tform([0, 0, 0.05]);
+collLink4 = collisionCylinder(0.1, 0.1, 0.05);
+collLink4.Pose = trvec2tform([0, 0, 0.025]);
+addCollision(bodies{1}, collBase);
+addCollision(bodies{2}, collLink1);
+addCollision(bodies{3}, collLink2);
+addCollision(bodies{4}, collLink3);
+addCollision(bodies{4}, collLink4);
+
 showdetails(robot)
 
-% figure(Name = "PUMA Robot Model")
-% show(robot);
+q = [0, 0, 0];
+config = homeConfiguration(robot);
 
-figure(Name="Interactive GUI")
-gui = interactiveRigidBodyTree(robot,MarkerScaleFactor=0.5);
+for i = 1:length(config)
+    config(i).JointPosition = q(i);
+end
+
+T = getTransform(robot, config, 'body4', 'base');
+
+figure(Name = "PUMA Robot Model")
+show(robot);
+
+% figure(Name="Interactive GUI")
+% gui = interactiveRigidBodyTree(robot,MarkerScaleFactor=0.5);
