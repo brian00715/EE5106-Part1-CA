@@ -7,7 +7,7 @@ function robot = CreateModel()
                 0, -pi / 2, 0.4, 0; % Link 1
                 0, pi / 2, 0, 0; % Link 2
                 0, 0, 0.1, 0; % Link 3
-                0, 0, 0.1, 0 % Link 4
+                0, 0, 0.4, 0 % Link 4
                 0.1, 0, 0, 0 % end_effector
                 ];
 
@@ -15,9 +15,9 @@ function robot = CreateModel()
     setFixedTransform(joint1, dhparams(1, :), "dh");
     joint2 = rigidBodyJoint('joint2', 'revolute');
     setFixedTransform(joint2, dhparams(2, :), "dh");
-    joint3 = rigidBodyJoint('joint3', 'prismatic');
+    joint3 = rigidBodyJoint('joint3', 'revolute');
     setFixedTransform(joint3, dhparams(3, :), "dh");
-    joint4 = rigidBodyJoint('joint4', 'fixed');
+    joint4 = rigidBodyJoint('joint4', 'prismatic');
     setFixedTransform(joint4, dhparams(4, :), "dh");
     joint5 = rigidBodyJoint('joint5', 'fixed');
     setFixedTransform(joint5, dhparams(5, :), "dh");

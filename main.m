@@ -4,10 +4,10 @@ robot = CreateModel();
 robot.Gravity = [0 0 -9.81];
 disp(robot);
 
-% gui = interactiveRigidBodyTree(robot, MarkerScaleFactor = 1);
+gui = interactiveRigidBodyTree(robot, MarkerScaleFactor = 1);
 
 %% show workspace
-if 0
+if 1
     figure('Position', [100, 100, 800, 600]);
     h = show(robot);
     title("Workspace");
@@ -18,10 +18,17 @@ if 0
     configSamples = cell(numSamples, 1);
 
     for i = 1:numSamples
-        configSamples{i} = randomConfiguration(robot);
+        sample = randomConfiguration(robot);
+        % limit joint 4 range
+        if sample(4) > 0.5
+            sample(4) = 0.5;
+        elseif sample(4) < -0.5
+            sample(4) = -0.5;
+        end
+
+        configSamples{i} = sample;
     end
 
-    % Calculate end-effector positions for each configuration
     eePositions = zeros(numSamples, 3);
 
     for i = 1:numSamples
@@ -41,7 +48,7 @@ if 0
 end
 
 %% Inverse Kinematics
-if 1
+if 0
     targetPosition = [0.2, 0, 0.6];
 
     gik = generalizedInverseKinematics;
@@ -49,15 +56,8 @@ if 1
     posConstraint = constraintPositionTarget("end_effector");
     posConstraint.TargetPosition = targetPosition;
 
-    % Create aiming constraint to make the end effector point toward the robot base
-    % aimConstraint = constraintAiming("end_effector");
-    % aimConstraint.TargetPoint = [0, 0, 0]; % Robot base origin
-
     q0 = homeConfiguration(robot);
-
-    % gik.ConstraintInputs = {"position", "aiming"};
     gik.ConstraintInputs = {"position"};
-    % [q, solutionInfo] = gik(q0, posConstraint, aimConstraint);
     [q, solutionInfo] = gik(q0, posConstraint);
 
     % Visualize the solution in a new figure
@@ -75,12 +75,11 @@ if 1
 
     hold off;
 
-    % Display the solution configuration
-    disp('关节配置 (弧度):');
+    disp('joint angle:');
     disp(q);
 
     %% draw trajectory animation
-    if 1
+    if 0
         close all;
 
         % Validate the solution by forward kinematics
@@ -92,31 +91,22 @@ if 1
         disp(targetPosition);
         disp(['Pose Error: ', num2str(norm(actualEndEffectorPosition - targetPosition))]);
 
-        fig = figure('Position', [100, 100, 900, 700]);
+        % fig = figure('Position', [100, 100, 900, 700]);
+        fig = figure();
         ax = axes('Parent', fig);
         title('Robot Trajectory Animation', 'FontSize', 14);
 
-        % Enhance lighting to match interactiveRigidBodyTree
         light('Position', [1 1 5], 'Style', 'infinite');
         light('Position', [-3 1 5], 'Style', 'infinite');
-        light('Position', [0 -2 1], 'Style', 'infinite'); % Additional light from another angle
 
         view(ax, 3); % Default 3D view
-        
-        % Expand view field significantly - remove tight constraints
-        axis([-1 1 -1 1 -0.5 1.5]); % Much wider viewing volume
-        
-        axis equal;
+        axis([-0.8 0.8 -0.8 0.8 0 0.8]);
         grid on;
-        
-        % Adjust camera settings for better visibility
-        camva(40); % Wider camera view angle (was 30)
-        camtarget([0, 0, 0.5]); % Target center of the workspace
-        campos([1.5, 1.5, 1.0]); % Position camera farther back
-        
-        % Enable camera toolbar for interactive adjustment
-        cameratoolbar('Show');
-        
+
+        % camva(30); % Camera view angle
+        % camtarget([0.1, 0, 0.3]); % Target center of the robot
+        % campos([1.2, 1.2, 0.8]); % Position camera similar to interactive view
+
         hold on;
 
         % Plot the target position in the animation
@@ -143,10 +133,8 @@ if 1
         % Create initial robot visualization with better properties
         h = show(robot, trajectory(:, 1), 'PreservePlot', false, 'Frames', 'off');
 
-        % Add a frameRate control for smoother animation
-        frameRate = 30;
+        frameRate = 60;
 
-        % Add a colorbar for visual enhancement
         colormap(ax, jet);
 
         % Animate robot
@@ -175,16 +163,13 @@ if 1
             baseLine = line([eeTrajectory(1, i), 0], [eeTrajectory(2, i), 0], [eeTrajectory(3, i), 0], ...
                 'Color', [0.2 0.6 1.0], 'LineWidth', 1.5, 'LineStyle', '-.');
 
-            % Add progress indicator
             progressText = sprintf('Frame: %d/%d', i, steps);
             sgtitle(progressText);
 
-            drawnow limitrate;
+            % drawnow limitrate;
             pause(1 / frameRate);
         end
 
-        % Add legend at the end
-        legend([h(1), traj_line, eeMarker, baseLine], {'Robot', 'Trajectory', 'End Effector', 'Base Link'}, 'Location', 'northeast');
     end
 
 end
