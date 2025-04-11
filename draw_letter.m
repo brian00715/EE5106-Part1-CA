@@ -8,12 +8,12 @@ disp(robot);
 % gui = interactiveRigidBodyTree(robot, MarkerScaleFactor = 1);
 % visualizeWorkspace(robot, 1000); % Reduced sample count for speed
 
-writingPlane = 0.1; % X position for writing (fixed X value for YZ plane)
-letterSize = 0.025; % Size of letters
-letterSpacing = 0.05; % Spacing between letters (now in Y direction)
-startPos = [writingPlane, -0.1, 0.5]; % Starting position for writing in YZ plane
+writingPlane = 0.24; % X position for writing (fixed X value for YZ plane)
+letterSize = 0.04; % Size of letters
+letterSpacing = 0.04; % Spacing between letters (now in Y direction)
+startPos = [writingPlane, -0.15, 0.5]; % Starting position for writing in YZ plane
 
-textToWrite = 'HI';
+textToWrite = 'E2-01-06';
 
 % Create a letter-by-letter writing function (safer approach)
 writeSingleLetters(robot, textToWrite, startPos, letterSize, letterSpacing, writingPlane);
@@ -30,7 +30,7 @@ function writeSingleLetters(robot, text, startPos, letterSize, letterSpacing, wr
     light('Position', [-3 1 5], 'Style', 'infinite');
 
     % Set axis limits based on workspace
-    axis([-0.3 0.3 -0.3 0.3 0 0.7]);
+    axis([-0.3 0.3 -0.3 0.3 0 0.9]);
     grid on;
     title('Robot Writing Letters on YZ Plane', 'FontSize', 14);
 
@@ -43,7 +43,6 @@ function writeSingleLetters(robot, text, startPos, letterSize, letterSpacing, wr
         currentPos = startPos;
         currentPos(2) = startPos(2) + (i - 1) * letterSpacing; % Move in Y direction for letter spacing
 
-        % Generate letter paths based on the letter
         switch upper(currentLetter)
             case 'H'
                 % Define H shape in YZ plane (x position is fixed)
@@ -71,6 +70,111 @@ function writeSingleLetters(robot, text, startPos, letterSize, letterSpacing, wr
                 plot3(pts(:, 1), pts(:, 2), pts(:, 3), 'g-', 'LineWidth', 2);
                 disp('Drawing letter I');
 
+            case 'E'
+                % Define E shape in YZ plane (x position is fixed)
+                pts = [
+                %    writingPlane, currentPos(2), currentPos(3); % Bottom left
+                %    writingPlane, currentPos(2), currentPos(3) + letterSize; % Top left
+                %    writingPlane, currentPos(2) + letterSize / 2, currentPos(3) + letterSize; % Top right
+                %    writingPlane, currentPos(2), currentPos(3) + letterSize / 2; % Middle left
+                %    writingPlane, currentPos(2) + letterSize / 2 * 0.8, currentPos(3) + letterSize / 2; % Middle right
+                %    writingPlane, currentPos(2), currentPos(3); % Back to bottom left
+                %    writingPlane, currentPos(2) + letterSize / 2, currentPos(3) % Bottom right
+
+                       writingPlane, currentPos(2) + letterSize / 2, currentPos(3) + letterSize; % Top right
+                       writingPlane, currentPos(2), currentPos(3) + letterSize; % Top left
+                       writingPlane, currentPos(2), currentPos(3); % Bottom left
+                       writingPlane, currentPos(2) + letterSize / 2, currentPos(3); % Bottom right
+                       NaN, NaN, NaN; % Pen up
+                       writingPlane, currentPos(2), currentPos(3) + letterSize / 2; % Middle left
+                       writingPlane, currentPos(2) + letterSize / 2 * 0.8, currentPos(3) + letterSize / 2; % Middle right
+                       ];
+                plot3(pts(:, 1), pts(:, 2), pts(:, 3), 'r-', 'LineWidth', 2);
+                disp('Drawing letter E');
+
+            case '2'
+                % Define 2 shape in YZ plane with digital display style (5 strokes)
+                pts = [
+                % Top horizontal stroke
+                       writingPlane, currentPos(2), currentPos(3) + letterSize; % Top left
+                       writingPlane, currentPos(2) + letterSize / 2, currentPos(3) + letterSize; % Top right
+                       NaN, NaN, NaN; % Pen up
+                % Top right vertical stroke
+                       writingPlane, currentPos(2) + letterSize / 2, currentPos(3) + letterSize; % Top right
+                       writingPlane, currentPos(2) + letterSize / 2, currentPos(3) + letterSize / 2; % Middle right
+                       NaN, NaN, NaN; % Pen up
+                % Middle horizontal stroke
+                       writingPlane, currentPos(2) + letterSize / 2, currentPos(3) + letterSize / 2; % Middle right
+                       writingPlane, currentPos(2), currentPos(3) + letterSize / 2; % Middle left
+                       NaN, NaN, NaN; % Pen up
+                % Bottom left vertical stroke
+                       writingPlane, currentPos(2), currentPos(3) + letterSize / 2; % Middle left
+                       writingPlane, currentPos(2), currentPos(3); % Bottom left
+                       NaN, NaN, NaN; % Pen up
+                % Bottom horizontal stroke
+                       writingPlane, currentPos(2), currentPos(3); % Bottom left
+                       writingPlane, currentPos(2) + letterSize / 2, currentPos(3) % Bottom right
+                       ];
+                % Only plot non-NaN points
+                validPoints = ~any(isnan(pts), 2);
+                plot3(pts(validPoints, 1), pts(validPoints, 2), pts(validPoints, 3), 'r-', 'LineWidth', 2);
+                disp('Drawing number 2 in digital display style');
+
+            case '0'
+                % Define 0 shape in YZ plane as a rectangle
+                pts = [
+                       writingPlane, currentPos(2), currentPos(3); % Bottom left
+                       writingPlane, currentPos(2) + letterSize / 2, currentPos(3); % Bottom right
+                       writingPlane, currentPos(2) + letterSize / 2, currentPos(3) + letterSize; % Top right
+                       writingPlane, currentPos(2), currentPos(3) + letterSize; % Top left
+                       writingPlane, currentPos(2), currentPos(3) % Back to bottom left
+                       ];
+                plot3(pts(:, 1), pts(:, 2), pts(:, 3), 'r-', 'LineWidth', 2);
+                disp('Drawing number 0 as rectangle');
+
+                % Original ellipse code (commented out)
+                % theta = linspace(0, 2 * pi, 20);
+                % verticalScale = 1.0; % Full height
+                % horizontalScale = 0.8; % Slightly narrower width
+                % y = currentPos(2) + letterSize/2 + (letterSize * horizontalScale/2) * cos(theta);
+                % z = currentPos(3) + letterSize/2 + (letterSize * verticalScale/2) * sin(theta);
+                % pts = [writingPlane * ones(length(theta), 1), y', z'];
+                % plot3(pts(:, 1), pts(:, 2), pts(:, 3), 'r-', 'LineWidth', 2);
+                % disp('Drawing number 0 as ellipse');
+
+            case '1'
+                % Define 1 shape in YZ plane
+                pts = [
+                       writingPlane, currentPos(2) + letterSize / 2, currentPos(3); % Bottom middle
+                       writingPlane, currentPos(2) + letterSize / 2, currentPos(3) + letterSize; % Top middle
+                       writingPlane, currentPos(2), currentPos(3) + letterSize * 0.8 % Top left slant
+                       ];
+                plot3(pts(:, 1), pts(:, 2), pts(:, 3), 'r-', 'LineWidth', 2);
+                disp('Drawing number 1');
+
+            case '6'
+                % Define 6 shape in YZ plane with digital display style (6 strokes)
+                pts = [
+                       writingPlane, currentPos(2) + letterSize / 2, currentPos(3) + letterSize; % Top right
+                       writingPlane, currentPos(2), currentPos(3) + letterSize; % Top left
+                       writingPlane, currentPos(2), currentPos(3); % Bottom left
+                       writingPlane, currentPos(2) + letterSize / 2, currentPos(3); % Bottom right
+                       writingPlane, currentPos(2) + letterSize / 2, currentPos(3) + letterSize / 2; % Middle right
+                       writingPlane, currentPos(2), currentPos(3) + letterSize / 2; % Middle left
+                       ];
+                validPoints = ~any(isnan(pts), 2);
+                plot3(pts(validPoints, 1), pts(validPoints, 2), pts(validPoints, 3), 'r-', 'LineWidth', 2);
+                disp('Drawing number 6');
+
+            case '-'
+                % Define dash shape in YZ plane
+                pts = [
+                       writingPlane, currentPos(2), currentPos(3) + letterSize / 2; % Left
+                       writingPlane, currentPos(2) + letterSize / 4, currentPos(3) + letterSize / 2 % Right
+                       ];
+                plot3(pts(:, 1), pts(:, 2), pts(:, 3), 'r-', 'LineWidth', 2);
+                disp('Drawing dash');
+
             otherwise
                 % Simple square for undefined letters (in YZ plane)
                 pts = [
@@ -84,7 +188,6 @@ function writeSingleLetters(robot, text, startPos, letterSize, letterSpacing, wr
                 disp(['Drawing default shape for letter: ', currentLetter]);
         end
 
-        % Now we have the letter path in pts, use it to move the robot
         moveRobotAlongPath(robot, pts);
     end
 
@@ -105,86 +208,100 @@ function moveRobotAlongPath(robot, path)
     posConstraint = constraintPositionTarget("end_effector");
     gik.ConstraintInputs = {"position"};
 
-    % Compute initial solution for visualization
-    posConstraint.TargetPosition = path(1, :);
-    [q, solutionInfo] = gik(q0, posConstraint);
+    % Find segments divided by NaN points
+    segments = {};
+    currentSegment = [];
 
-    % Show robot at first point
-    show(robot, q, 'PreservePlot', false);
-    pause(0.5);
+    for i = 1:numPoints
 
-    % Animation parameters
-    frameRate = 30;
-    stepsPerSegment = 5; % Number of steps between each path point
+        if any(isnan(path(i, :)))
 
-    % Initialize animation
-    totalSteps = (numPoints - 1) * stepsPerSegment;
-    eeTrajectory = zeros(totalSteps, 3);
-    allConfigs = zeros(length(q0), totalSteps);
-
-    % Generate smooth trajectory
-    stepIdx = 1;
-
-    for i = 1:(numPoints - 1)
-        startPos = path(i, :);
-        endPos = path(i + 1, :);
-
-        for j = 1:stepsPerSegment
-            t = j / stepsPerSegment;
-            targetPos = (1 - t) * startPos + t * endPos;
-
-            posConstraint.TargetPosition = targetPos;
-
-            % Use previous configuration as initial guess
-            if i == 1 && j == 1
-                initialGuess = q0;
-            else
-                initialGuess = allConfigs(:, max(1, stepIdx - 1));
+            if ~isempty(currentSegment)
+                segments{end + 1} = currentSegment;
+                currentSegment = [];
             end
 
-            % Solve IK
-            [q, solutionInfo] = gik(initialGuess, posConstraint);
-
-            % Store configuration and end effector position
-            allConfigs(:, stepIdx) = q;
-            tform = getTransform(robot, q, 'end_effector');
-            eeTrajectory(stepIdx, :) = tform2trvec(tform);
-
-            stepIdx = stepIdx + 1;
+        else
+            currentSegment = [currentSegment; path(i, :)];
         end
 
     end
 
-    % Plot full trajectory
-    plot3(eeTrajectory(:, 1), eeTrajectory(:, 2), eeTrajectory(:, 3), 'g-', 'LineWidth', 1.5);
+    % Add the last segment if it exists
+    if ~isempty(currentSegment)
+        segments{end + 1} = currentSegment;
+    end
 
-    % Animate robot along trajectory
-    eeMarker = [];
-    currentTrace = [];
+    % Process each segment
+    for segIdx = 1:length(segments)
+        currentPath = segments{segIdx};
+        numSegPoints = size(currentPath, 1);
 
-    for i = 1:size(allConfigs, 2)
-        % Update robot visualization
-        show(robot, allConfigs(:, i), 'PreservePlot', false);
+        % Animation parameters for this segment
+        frameRate = 120;
+        stepsPerSegment = 5;
 
-        % Update end effector marker
-        if ~isempty(eeMarker) && isvalid(eeMarker)
-            delete(eeMarker);
+        % Initialize segment trajectory
+        totalSteps = (numSegPoints - 1) * stepsPerSegment;
+        segTrajectory = zeros(totalSteps, 3);
+        segConfigs = zeros(length(q0), totalSteps);
+
+        % Generate trajectory for this segment
+        stepIdx = 1;
+
+        for i = 1:(numSegPoints - 1)
+            startPos = currentPath(i, :);
+            endPos = currentPath(i + 1, :);
+
+            for j = 1:stepsPerSegment
+                t = j / stepsPerSegment;
+                targetPos = (1 - t) * startPos + t * endPos;
+
+                posConstraint.TargetPosition = targetPos;
+
+                % Use previous configuration as initial guess
+                if stepIdx == 1
+                    initialGuess = q0;
+                else
+                    initialGuess = segConfigs(:, stepIdx - 1);
+                end
+
+                % Solve IK
+                [q, solutionInfo] = gik(initialGuess, posConstraint);
+
+                % Store configuration and end effector position
+                segConfigs(:, stepIdx) = q;
+                tform = getTransform(robot, q, 'end_effector');
+                segTrajectory(stepIdx, :) = tform2trvec(tform);
+
+                stepIdx = stepIdx + 1;
+            end
+
         end
 
-        eeMarker = plot3(eeTrajectory(i, 1), eeTrajectory(i, 2), eeTrajectory(i, 3), 'g.', 'MarkerSize', 15);
+        % Animate this segment
+        for i = 1:size(segConfigs, 2)
+            % Update robot visualization
+            show(robot, segConfigs(:, i), 'PreservePlot', false);
 
-        % Update trace
-        if ~isempty(currentTrace) && isvalid(currentTrace)
-            delete(currentTrace);
+            % Add current end effector position marker
+            plot3(segTrajectory(i, 1), segTrajectory(i, 2), segTrajectory(i, 3), 'g.', 'MarkerSize', 15);
+
+            % Draw trace up to current point
+            plot3(segTrajectory(1:i, 1), segTrajectory(1:i, 2), segTrajectory(1:i, 3), 'b-', 'LineWidth', 2);
+
+            % Update progress
+            title(sprintf('Drawing segment %d/%d: %.1f%%', segIdx, length(segments), 100 * i / size(segConfigs, 2)));
+
+            drawnow;
+            pause(1 / frameRate);
         end
 
-        currentTrace = plot3(eeTrajectory(1:i, 1), eeTrajectory(1:i, 2), eeTrajectory(1:i, 3), 'b-', 'LineWidth', 2);
+        % If this isn't the last segment, pause briefly between segments
+        if segIdx < length(segments)
+            pause(0.1);
+        end
 
-        % Display progress
-        title(sprintf('Writing progress: %.1f%%', 100 * i / size(allConfigs, 2)));
-
-        drawnow;
-        pause(1 / frameRate);
     end
 
 end
@@ -201,7 +318,7 @@ function writeText(robot, text, startPos, letterSize, letterSpacing, writingPlan
     light('Position', [-3 1 5], 'Style', 'infinite');
 
     % Set axis limits based on workspace
-    axis([-0.3 0.3 -0.3 0.3 0 0.7]);
+    axis([-0.3 0.3 -0.3 0.3 0 0.9]);
     grid on;
     title('Robot Writing Text', 'FontSize', 14);
 
