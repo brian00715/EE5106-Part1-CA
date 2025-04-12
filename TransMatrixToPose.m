@@ -1,4 +1,4 @@
-function [pos, ori] = transMatrixToPose(T)
+function [pos, ori] = TransMatrixToPose(T)
     % transMatrixToPose - Convert a 4x4 transformation matrix to a position and orientation
     pos = T(1:3, 4)';
 

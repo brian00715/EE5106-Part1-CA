@@ -4,10 +4,10 @@ robot = CreateModel();
 robot.Gravity = [0 0 -9.81];
 disp(robot);
 
-gui = interactiveRigidBodyTree(robot, MarkerScaleFactor = 1);
+% gui = interactiveRigidBodryTree(robot, MarkerScaleFactor = 1);
 
 %% show workspace
-if 1
+if 0
     figure('Position', [100, 100, 800, 600]);
     h = show(robot);
     title("Workspace");
@@ -172,6 +172,20 @@ if 0
 
     end
 
+end
+
+%% Draw letters
+writingPlane = 0.24; % X position for writing (fixed X value for YZ plane)
+letterSize = 0.04; 
+letterSpacing = 0.04; 
+startPos = [writingPlane, -0.15, 0.5]; % Starting position for writing in YZ plane
+
+textToWrite = 'E2-01-06';
+
+% Create a letter-by-letter writing function with axis frames disabled
+WriteLetters(robot, textToWrite, startPos, letterSize, letterSpacing, writingPlane, 'Frames', 'off');
+
+if 1
 end
 
 hold off;
