@@ -12,22 +12,14 @@ function T_rst = ForwardKinematics(dh, q)
     % Initialize transformation matrix
     T = eye(4);
 
-    % DH transformation matrix function
-    function T = DHTransform(alpha, a, d, theta)
-        T = [cos(theta), -sin(theta) * cos(alpha), sin(theta) * sin(alpha), a * cos(theta);
-             sin(theta), cos(theta) * cos(alpha), -cos(theta) * sin(alpha), a * sin(theta);
-             0, sin(alpha), cos(alpha), d;
-             0, 0, 0, 1];
-    end
-
     % Compute cumulative transformation
     for i = 1:n
-        alpha = dh(i, 1);
-        a = dh(i, 2);
+        a = dh(i, 1);
+        alpha = dh(i, 2);
         d = dh(i, 3);
-        theta = q(i) + dh(i, 4); % Add theta offset from DH parameters
+        theta = dh(i, 4); % Add theta offset from DH parameters
 
-        Ti = DHTransform(alpha, a, d, theta);
+        Ti = DH2TfMatrix(a, alpha, d, theta);
         T = T * Ti;
     end
 

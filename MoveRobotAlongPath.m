@@ -3,6 +3,7 @@ function MoveRobotAlongPath(robot, path, displayTrajectory, frames)
     if nargin < 3
         displayTrajectory = true; % Default to displaying trajectory
     end
+
     if nargin < 4
         frames = 'on'; % Default to showing frames
     end
@@ -112,7 +113,7 @@ function MoveRobotAlongPath(robot, path, displayTrajectory, frames)
                         plot3([prevPoint(1), currentPoint(1)], ...
                             [prevPoint(2), currentPoint(2)], ...
                             [prevPoint(3), currentPoint(3)], ...
-                            'b-', 'LineWidth', 2);
+                            'b-', 'LineWidth', 2.8);
                     end
 
                 end

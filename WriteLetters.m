@@ -4,10 +4,10 @@ function WriteLetters(robot, text, startPos, letterSize, letterSpacing, writingP
     addParameter(p, 'Frames', 'on');
     parse(p, varargin{:});
 
-    config = homeConfiguration(robot);
-    config(4) = 0.1;
+    init_config = homeConfiguration(robot);
+    init_config(4) = 0.1;
     figure('Position', [100, 100, 900, 700]);
-    show(robot, config, 'Frames', p.Results.Frames);
+    show(robot, init_config, 'Frames', p.Results.Frames);
     hold on;
 
     view(60, 20); % Keep this viewing angle for visualization
@@ -34,7 +34,7 @@ function WriteLetters(robot, text, startPos, letterSize, letterSpacing, writingP
     % Store last end point for transition path
     lastEndPoint = [];
 
-    for i = 1:length(text)
+    rfor i = 1:length(text)
         currentLetter = text(i);
         currentPos = startPos;
         currentPos(2) = startPos(2) + (i - 1) * letterSpacing; % Move in Y direction for letter spacing
@@ -108,11 +108,11 @@ function WriteLetters(robot, text, startPos, letterSize, letterSpacing, writingP
             case '1'
                 % Define 1 shape in YZ plane
                 pts = [
-                       writingPlane, currentPos(2), currentPos(3) + letterSize * 0.8 % Top left slant
+                       writingPlane, currentPos(2) + 0.01, currentPos(3) + letterSize * 0.7 % Top left slant
                        writingPlane, currentPos(2) + letterSize / 2, currentPos(3) + letterSize; % Top middle
                        writingPlane, currentPos(2) + letterSize / 2, currentPos(3); % Bottom middle
-                %    writingPlane, currentPos(2), currentPos(3); % Bottom left
-                %    writingPlane, currentPos(2), currentPos(3) + letterSize;
+                       writingPlane, currentPos(2) + 0.01, currentPos(3); % Bottom left
+                       writingPlane, currentPos(2) + letterSize / 2 + 0.01, currentPos(3);
                        ];
                 disp('Drawing number 1');
 
@@ -149,6 +149,19 @@ function WriteLetters(robot, text, startPos, letterSize, letterSpacing, writingP
                 disp(['Drawing default shape for letter: ', currentLetter]);
         end
 
+        if i == 1 % move from home point to first letter pose
+            global dhparams
+            init_T = ForwardKinematics(dhparams, init_config);
+            init_pos = tform2trvec(init_T);
+            transpts = [
+                        init_pos; % Start from home position
+                        [startPos(1), startPos(2), startPos(3)];
+                        pts(1, :) % Move forward to start of first letter
+                        ];
+
+            MoveRobotAlongPath(robot, transpts, true, p.Results.Frames); % true means display trajectory
+        end
+
         % If we have a previous end point, create transition path without displaying it
         if ~isempty(lastEndPoint)
             liftDepth = 0.02;
@@ -163,7 +176,7 @@ function WriteLetters(robot, text, startPos, letterSize, letterSpacing, writingP
         end
 
         % Draw the letter and its trajectory
-        plot3(pts(:, 1), pts(:, 2), pts(:, 3), 'r-', 'LineWidth', 2);
+        plot3(pts(:, 1), pts(:, 2), pts(:, 3), 'r.', 'LineWidth', 0.5);
         MoveRobotAlongPath(robot, pts, true, p.Results.Frames); % true means display trajectory
 
         % Store the end point of current letter for next transition
@@ -173,8 +186,6 @@ function WriteLetters(robot, text, startPos, letterSize, letterSpacing, writingP
     % move to home position from last end point
     transpts = [
                 lastEndPoint; % Start from last letter's end
-    % [lastEndPoint(1) - 0.05, lastEndPoint(2), lastEndPoint(3)];
-    % [lastEndPoint(1) - 0.05, lastEndPoint(2), 0.5];
                 [0.2, 0, 0.5]; % Move to home position
                 ];
 
