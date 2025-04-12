@@ -9,7 +9,7 @@ disp(robot);
 %% show workspace
 if 0
     figure('Position', [100, 100, 800, 600]);
-    h = show(robot);
+    h = show(robot);r
     title("Workspace");
     hold on;
 

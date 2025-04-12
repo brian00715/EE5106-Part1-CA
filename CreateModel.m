@@ -7,7 +7,7 @@ function robot = CreateModel()
                 0, -pi / 2, 0.4, 0; % Link 1
                 0, pi / 2, 0, 0; % Link 2
                 0, 0, 0.1, 0; % Link 3
-                0, 0, 0.4, 0 % Link 4
+                0, 0, 0, 0 % Link 4
                 0.1, 0, 0, 0 % end_effector
                 ];
 

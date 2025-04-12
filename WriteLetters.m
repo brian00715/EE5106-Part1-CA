@@ -3,20 +3,19 @@ function WriteLetters(robot, text, startPos, letterSize, letterSpacing, writingP
     p = inputParser;
     addParameter(p, 'Frames', 'on');
     parse(p, varargin{:});
-    
+
     figure('Position', [100, 100, 900, 700]);
     show(robot, 'Frames', p.Results.Frames);
     hold on;
 
-    % Set view and lighting
-    % rview(45, 30); % Keep this viewing angle for visualization
+    view(60, 20); % Keep this viewing angle for visualization
     light('Position', [1 1 5], 'Style', 'infinite');
     light('Position', [-3 1 5], 'Style', 'infinite');
 
     % Set axis limits based on workspace
     axis([-0.3 0.3 -0.3 0.3 0 0.9]);
     grid on;
-    title('Robot Writing Letters on YZ Plane', 'FontSize', 14);
+    rtitle('Robot Writing Letters on YZ Plane', 'FontSize', 14);
 
     % Display which text we're writing
     disp(['Writing text: "', text, '"']);
@@ -26,7 +25,6 @@ function WriteLetters(robot, text, startPos, letterSize, letterSpacing, writingP
 
     for i = 1:length(text)
         currentLetter = text(i);
-        disp(['Processing letter: ', currentLetter]);
         currentPos = startPos;
         currentPos(2) = startPos(2) + (i - 1) * letterSpacing; % Move in Y direction for letter spacing
 
@@ -83,7 +81,7 @@ function WriteLetters(robot, text, startPos, letterSize, letterSpacing, writingP
                        writingPlane, currentPos(2) + letterSize / 2, currentPos(3) % Bottom right
                        ];
                 validPoints = ~any(isnan(pts), 2);
-                disp('Drawing number 2 in digital display style');
+                disp('Drawing number 2');
 
             case '0'
                 % Define 0 shape in YZ plane as a rectangle
@@ -94,7 +92,7 @@ function WriteLetters(robot, text, startPos, letterSize, letterSpacing, writingP
                        writingPlane, currentPos(2), currentPos(3) + letterSize; % Top left
                        writingPlane, currentPos(2), currentPos(3) % Back to bottom left
                        ];
-                disp('Drawing number 0 as rectangle');
+                disp('Drawing number 0');
 
             case '1'
                 % Define 1 shape in YZ plane
@@ -140,17 +138,14 @@ function WriteLetters(robot, text, startPos, letterSize, letterSpacing, writingP
 
         % If we have a previous end point, create transition path without displaying it
         if ~isempty(lastEndPoint)
-            % Create transition path with retraction in x direction
-            liftDepth = 0.05; % How far to retract in x direction
+            liftDepth = 0.02;
             transitionPoints = [
                                 lastEndPoint; % Start from last letter's end
                                 [lastEndPoint(1) - liftDepth, lastEndPoint(2), lastEndPoint(3)];
-            % Move to above the start of next letter while retracted
                                 [pts(1, 1) - liftDepth, pts(1, 2), pts(1, 3)];
                                 pts(1, :) % Move forward to start of next letter
                                 ];
 
-            % Move robot along transition path
             MoveRobotAlongPath(robot, transitionPoints, false, p.Results.Frames); % false means don't display trajectory
         end
 
@@ -162,5 +157,17 @@ function WriteLetters(robot, text, startPos, letterSize, letterSpacing, writingP
         lastEndPoint = pts(end, :);
     end
 
+    % move to home position from last end point
+    transpts = [
+                lastEndPoint; % Start from last letter's end
+                % [lastEndPoint(1) - 0.05, lastEndPoint(2), lastEndPoint(3)];
+                % [lastEndPoint(1) - 0.05, lastEndPoint(2), 0.5];
+                [0.2, 0, 0.5]; % Move to home position
+                ];
+
+    MoveRobotAlongPath(robot, transpts, true, p.Results.Frames); % true means display trajectory
+    xlabel('X-axis');
+    ylabel('Y-axis');
+    zlabel('Z-axis');
     hold off;
 end

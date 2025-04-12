@@ -124,7 +124,7 @@ function MoveRobotAlongPath(robot, path, displayTrajectory, frames)
         end
 
         % Small pause between segments
-        pause(0.1);
+        pause(0.05);
     end
 
 end
