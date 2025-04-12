@@ -4,17 +4,21 @@ robot = CreateModel();
 robot.Gravity = [0 0 -9.81];
 disp(robot);
 
-% gui = interactiveRigidBodryTree(robot, MarkerScaleFactor = 1);
+% gui = interactiveRigidBodyTree(robot, MarkerScaleFactor = 1);
+% axis([-0.3 0.3 -0.3 0.3 0 1.0]);
 
 %% show workspace
 if 0
     figure('Position', [100, 100, 800, 600]);
-    h = show(robot);r
+    config = homeConfiguration(robot);
+    config(4) = 0.1;
+
+    h = show(robot);
     title("Workspace");
     hold on;
 
     % Sample configurations for workspace visualization
-    numSamples = 20000;
+    numSamples = 50000;
     configSamples = cell(numSamples, 1);
 
     for i = 1:numSamples
@@ -36,13 +40,30 @@ if 0
         eePositions(i, :) = tform2trvec(T);
     end
 
-    scatter3(eePositions(:, 1), eePositions(:, 2), eePositions(:, 3), 10, 'blue', 'filled', 'MarkerFaceAlpha', 0.3);
+    scatter3(eePositions(:, 1), eePositions(:, 2), eePositions(:, 3), 10, 'blue', 'filled', 'MarkerFaceAlpha', 0.1);
     xlabel('X');
     ylabel('Y');
     zlabel('Z');
     axis equal;
     grid on;
     view(45, 30);
+
+    vertices = [
+                0.24, -0.17, 0.5; % Bottom left
+                0.24, 0.1, 0.5; % Bottom right
+                0.24, 0.1, 0.54; % Top right
+                0.24, -0.17, 0.54 % Top left
+                ];
+    faces = [1 2 3 4];
+    patch('Vertices', vertices, 'Faces', faces, 'FaceColor', [0.7 0.7 0.7], 'FaceAlpha', 0.3);
+
+    cornerLabels = {'BL', 'BR', 'TR', 'TL'};
+
+    for i = 1:4
+        coordText = sprintf('(%.2f, %.2f, %.2f)', vertices(i, 1), vertices(i, 2), vertices(i, 3));
+        textPos = vertices(i, :) + [0, (-1) ^ i * 0.01, (-1) ^ floor(i / 2) * 0.01];
+        text(textPos(1), textPos(2), textPos(3), [cornerLabels{i} ': ' coordText], 'FontSize', 10);
+    end
 
     axis([-0.3 0.3 -0.3 0.3 0 0.7]);
 end
@@ -175,17 +196,17 @@ if 0
 end
 
 %% Draw letters
-writingPlane = 0.24; % X position for writing (fixed X value for YZ plane)
-letterSize = 0.04; 
-letterSpacing = 0.04; 
-startPos = [writingPlane, -0.15, 0.5]; % Starting position for writing in YZ plane
-
-textToWrite = 'E2-01-06';
-
-% Create a letter-by-letter writing function with axis frames disabled
-WriteLetters(robot, textToWrite, startPos, letterSize, letterSpacing, writingPlane, 'Frames', 'off');
-
 if 1
+    writingPlane = 0.24; % X position for writing (fixed X value for YZ plane)
+    letterSize = 0.04;
+    letterSpacing = 0.03;
+    startPos = [writingPlane, -0.15, 0.5]; % Starting position for writing in YZ plane
+
+    textToWrite = 'E2-01-06';
+
+    % Create a letter-by-letter writing function with axis frames disabled
+    WriteLetters(robot, textToWrite, startPos, letterSize, letterSpacing, writingPlane, 'Frames', 'off');
+
 end
 
 hold off;

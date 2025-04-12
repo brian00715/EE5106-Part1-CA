@@ -4,8 +4,10 @@ function WriteLetters(robot, text, startPos, letterSize, letterSpacing, writingP
     addParameter(p, 'Frames', 'on');
     parse(p, varargin{:});
 
+    config = homeConfiguration(robot);
+    config(4) = 0.1;
     figure('Position', [100, 100, 900, 700]);
-    show(robot, 'Frames', p.Results.Frames);
+    show(robot, config, 'Frames', p.Results.Frames);
     hold on;
 
     view(60, 20); % Keep this viewing angle for visualization
@@ -15,7 +17,16 @@ function WriteLetters(robot, text, startPos, letterSize, letterSpacing, writingP
     % Set axis limits based on workspace
     axis([-0.3 0.3 -0.3 0.3 0 0.9]);
     grid on;
-    rtitle('Robot Writing Letters on YZ Plane', 'FontSize', 14);
+
+    % Draw transparent gray rectangle
+    vertices = [
+                writingPlane, -0.17, 0.5; % Bottom left
+                writingPlane, 0.1, 0.5; % Bottom right
+                writingPlane, 0.1, 0.54; % Top right
+                writingPlane, -0.17, 0.54 % Top left
+                ];
+    faces = [1 2 3 4];
+    patch('Vertices', vertices, 'Faces', faces, 'FaceColor', [0.7 0.7 0.7], 'FaceAlpha', 0.3);
 
     % Display which text we're writing
     disp(['Writing text: "', text, '"']);
@@ -97,9 +108,11 @@ function WriteLetters(robot, text, startPos, letterSize, letterSpacing, writingP
             case '1'
                 % Define 1 shape in YZ plane
                 pts = [
-                       writingPlane, currentPos(2) + letterSize / 2, currentPos(3); % Bottom middle
-                       writingPlane, currentPos(2) + letterSize / 2, currentPos(3) + letterSize; % Top middle
                        writingPlane, currentPos(2), currentPos(3) + letterSize * 0.8 % Top left slant
+                       writingPlane, currentPos(2) + letterSize / 2, currentPos(3) + letterSize; % Top middle
+                       writingPlane, currentPos(2) + letterSize / 2, currentPos(3); % Bottom middle
+                %    writingPlane, currentPos(2), currentPos(3); % Bottom left
+                %    writingPlane, currentPos(2), currentPos(3) + letterSize;
                        ];
                 disp('Drawing number 1');
 
@@ -160,8 +173,8 @@ function WriteLetters(robot, text, startPos, letterSize, letterSpacing, writingP
     % move to home position from last end point
     transpts = [
                 lastEndPoint; % Start from last letter's end
-                % [lastEndPoint(1) - 0.05, lastEndPoint(2), lastEndPoint(3)];
-                % [lastEndPoint(1) - 0.05, lastEndPoint(2), 0.5];
+    % [lastEndPoint(1) - 0.05, lastEndPoint(2), lastEndPoint(3)];
+    % [lastEndPoint(1) - 0.05, lastEndPoint(2), 0.5];
                 [0.2, 0, 0.5]; % Move to home position
                 ];
 
